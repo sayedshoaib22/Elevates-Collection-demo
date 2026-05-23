@@ -94,7 +94,7 @@ function initMobileMenu() {
     const spans = ham.querySelectorAll('span');
     if (isOpen) {
       spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
-      spans[1].style.opacity  = '0';
+      spans[1].style.opacity = '0';
       spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
     } else {
       spans.forEach(s => { s.style.transform = ''; s.style.opacity = ''; });
@@ -115,7 +115,7 @@ function initMobileMenu() {
    PAGE NAVIGATION (SPA-style hash routing)
    ============================================================ */
 function initPageNav() {
-  const pages    = document.querySelectorAll('.page');
+  const pages = document.querySelectorAll('.page');
   const navLinks = document.querySelectorAll('.nav-links a, .mobile-nav a, .footer-top a[href^="#"]');
 
   function showPage(id) {
@@ -170,26 +170,31 @@ function initHeroSlider() {
   const wrapper = document.querySelector('.slides-wrapper');
   if (!wrapper) return;
 
-  const slides  = wrapper.querySelectorAll('.slide');
-  const dots    = document.querySelectorAll('.slide-dots .dot');
+  const slides = wrapper.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.slide-dots .dot');
   const prevBtn = document.querySelector('.slide-prev');
   const nextBtn = document.querySelector('.slide-next');
 
   if (!slides.length) return;
 
-  let current  = 0;
+  let current = 0;
   let autoTimer = null;
+  const AUTO_DELAY = 5200;
 
   function goTo(index) {
+    const nextIndex = (index + slides.length) % slides.length;
+    if (nextIndex === current) return;
+
     slides[current].classList.remove('active');
     dots[current]?.classList.remove('active');
-    current = (index + slides.length) % slides.length;
+    current = nextIndex;
     slides[current].classList.add('active');
     dots[current]?.classList.add('active');
   }
 
   function startAuto() {
-    autoTimer = setInterval(() => goTo(current + 1), 5500);
+    clearInterval(autoTimer);
+    autoTimer = setInterval(() => goTo(current + 1), AUTO_DELAY);
   }
 
   function resetAuto() {
@@ -200,16 +205,21 @@ function initHeroSlider() {
   prevBtn?.addEventListener('click', () => { goTo(current - 1); resetAuto(); });
   nextBtn?.addEventListener('click', () => { goTo(current + 1); resetAuto(); });
 
-  dots.forEach((dot, i) => {
-    dot.addEventListener('click', () => { goTo(i); resetAuto(); });
+  dots.forEach((dot, index) => {
+    dot.addEventListener('click', () => { goTo(index); resetAuto(); });
   });
 
-  // Touch / swipe support
+  wrapper.addEventListener('mouseenter', () => clearInterval(autoTimer));
+  wrapper.addEventListener('mouseleave', () => startAuto());
+
   let touchStartX = 0;
   wrapper.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
   wrapper.addEventListener('touchend', e => {
     const delta = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(delta) > 50) { goTo(current + (delta > 0 ? 1 : -1)); resetAuto(); }
+    if (Math.abs(delta) > 60) {
+      goTo(current + (delta > 0 ? 1 : -1));
+      resetAuto();
+    }
   });
 
   startAuto();
@@ -246,8 +256,8 @@ function initCart() {
     if (!btn) return;
 
     const card = btn.closest('.product-card');
-    const name  = card?.querySelector('h3')?.textContent || 'Item';
-    const qty   = parseInt(card?.querySelector('.qty-count')?.textContent || 1);
+    const name = card?.querySelector('h3')?.textContent || 'Item';
+    const qty = parseInt(card?.querySelector('.qty-count')?.textContent || 1);
 
     cartCount += qty;
     if (cartCountEl) cartCountEl.textContent = cartCount;
